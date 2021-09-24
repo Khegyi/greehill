@@ -4,8 +4,8 @@ import './App.css';
 function App() {
 
   const [theGrid, setTheGrid] = useState([]);
-  const defaultStartingRowNumber = 32;
-  const defaultStartingCollNumber = 32;
+  const defaultStartingRowNumber = 30;
+  const defaultStartingCollNumber = 30;
 
   
   function createTheGrid () {
@@ -36,16 +36,80 @@ const renderTheGrid = () => {
 return table;
 } 
 
+const SchrodringersQuestion = (cell) => {
+
+  //corner
+  if(cell.row === 0 || cell.row === defaultStartingRowNumber-1 || cell.coll === 0 || cell.coll === defaultStartingCollNumber-1 ){
+    if((cell.row === 0 || cell.row === defaultStartingRowNumber-1) && (cell.coll === 0 || cell.coll === defaultStartingCollNumber-1 )){
+      console.log("corner");
+       //3 neighbour
+    }else{
+        //border
+      console.log("border");
+       //5 neighbour
+    }
+  }else{
+      //else
+    console.log("else");
+    //8 neighbour
+  }
+}
+
+const shouldCellSurvive = (neighbours, isalive) => {
+let counter = 0;
+neighbours.forEach(c => {
+  if(isCellAlive(c)){
+    counter++;
+  }
+});
+console.log("alive counter: ", counter);
+  if(isalive){
+    if(counter < 2 || counter > 3){
+      return false;
+    }else{
+      return true;
+    }
+  }else{
+    if(counter === 3){
+      return true;
+    }else{
+      return false;
+    }
+  }
+}
+
+const isCellAlive = (cell) => {
+  const tempGrid = [...theGrid];
+  const result = tempGrid.find(c => c.row === cell.row && c.coll === cell.coll);
+  return result.alive;
+}
+
+const NeighbourCounter = (cell) => {
+  let neighbours = [];
+  for (let h = cell.row - 1; h < cell.row + 2; h++) {
+    for (let k = cell.coll - 1; k < cell.coll + 2; k++) {
+      if(((h >= 0) && (h <= defaultStartingRowNumber-1)) && ((k >= 0) && (k <= defaultStartingCollNumber-1))){
+        if(h !==cell.row || k !==cell.coll )
+          neighbours.push({row: h, coll: k})
+      }
+    } 
+  } 
+  const isnextphasealive = shouldCellSurvive(neighbours, isCellAlive(cell));
+  console.log("now alive: ",  isCellAlive(cell), " will Live:", isnextphasealive);
+  console.log(neighbours);
+}
+
 const handleCellClick = (data) => {
-  console.log(data);
+ //console.log(data);
   const tempGrid = [...theGrid];
   tempGrid.map(cell => {
     if(cell.row === data.row && cell.coll === data.coll){
+     // SchrodringersQuestion(cell);
      cell.alive = !data.alive;
+     NeighbourCounter(cell);
     }
     return cell;
   })
-
   setTheGrid(tempGrid);
 } 
 
