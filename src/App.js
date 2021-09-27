@@ -4,8 +4,10 @@ import './App.css';
 function App() {
 
   const [theGrid, setTheGrid] = useState([]);
+  const [theOriginalGrid, setTheOriginalGrid] = useState([]);
   const [globalAliveCounter, setGlobalAliveCounter] = useState(0);
   const [playMode, setPlayMode] = useState(false);
+  const [playSpeed, setPlaySpeed] = useState(500);
   const [intervalId, setIntervalId] = useState(0);
   const defaultStartingRowNumber = 30;
   const defaultStartingCollNumber = 30;
@@ -27,6 +29,7 @@ function App() {
     }
     setGlobalAliveCounter(gAC);
     setTheGrid(grid);
+    console.log("set origina");
   }
 
 const renderTheGrid = () => {
@@ -92,7 +95,8 @@ const isCellAlive = (cell) => {
   return result.alive;
 }
 
-const NeighbourCounter = (cell) => {
+const willCellLiveNextGen = (cell) => {
+  // getting cell's direct neigbours and checking life signals
   let neighbours = [];
   for (let h = cell.row - 1; h < cell.row + 2; h++) {
     for (let k = cell.coll - 1; k < cell.coll + 2; k++) {
@@ -113,14 +117,12 @@ const nextGeneration = () => {
       let gAC = 0; 
       const tempGrid = [...theGrid];
       tempGrid.map(cell => {
-          cell.alive = NeighbourCounter(cell);
+          cell.alive = willCellLiveNextGen(cell);
           if(cell.alive){
             gAC++;
           }
            return cell;
       })
-      console.log(tempGrid);
-      console.log("gAC: ", gAC);
       setGlobalAliveCounter(gAC);
       setTheGrid(tempGrid);
 }
@@ -131,7 +133,7 @@ const handleCellClick = (data) => {
     if(cell.row === data.row && cell.coll === data.coll){
      // SchrodringersQuestion(cell);
      cell.alive = !data.alive;
-     NeighbourCounter(cell);
+     willCellLiveNextGen(cell);
     }
     return cell;
   })
@@ -148,12 +150,19 @@ const handlePlay = () => {
   }else{
     const newIntervalID = setInterval(() => {
       nextGeneration();
-    }, 10);
+    }, playSpeed);
     setPlayMode(true)
     setIntervalId(newIntervalID);
   }
 }
 
+const handleSpeedChange = (e) => {
+  const reverseval = 1001 - e.target.value;
+  setPlaySpeed(reverseval);
+}
+
+const resetOriginalGrid = () => {
+}
   useEffect(() => {
      createTheGrid("random");
   }, []);
@@ -171,7 +180,9 @@ const handlePlay = () => {
         <div>
           <button onClick={() => nextGeneration()}>Next Gen</button>
           <button onClick={() => handlePlay()}>{(playMode ? "Stop" : "Go")}</button>
+          <button onClick={() => resetOriginalGrid()}>Reset</button>
         </div>
+        <div><input onChange={(e) => handleSpeedChange(e)} type="range" min="1" max="1000" /></div>
         <div className="Game-grid">
           {renderTheGrid()}
         </div>
