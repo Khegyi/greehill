@@ -3,40 +3,98 @@
   background-color: #282c34;
   color: white;
 }
-h1{
+h1 {
   margin: 0;
 }
 .App-body {
-
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  
 }
 
-.row{
-  display:flex;
+.App-header p {
+  margin: 0;
+}
+.tooltip {
+  min-height: 40px;
+}
+.controll {
+  flex: 1;
+}
+
+.first_row {
+  margin-bottom: 20px;
+}
+
+.controll button {
+  border: none;
+  border-radius: 5px;
+  margin: 3px;
+  background-color: #2f54ebe8;
+  color: #fff;
+  padding: 20px;
+  font-size: 32px;
+}
+.controll button:hover {
+  filter: drop-shadow(3px 3px 1px white);
+  cursor: pointer;
+}
+.controll button:disabled {
+  filter: grayscale(100%);
+  cursor: not-allowed;
+}
+.controll button.stop {
+  background-color: #f5222de8;
+}
+.controll button.random {
+  background-color: #722ed1e8;
+}
+.controll button.go {
+  background-color: #53c41ae8;
+}
+.controll button.reset {
+  background-color: #fa8c16e8;
+}
+.controll button.clear {
+  background-color: #f5222de8;
+}
+.controll button.preset {
+  background-color: #13c2c2e8;
+}
+.controll select {
+  font-size: 32px;
+  border-radius: 5px;
+  height: 80px;
+  margin-right: 3px;
+}
+.Game-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.row {
+  display: flex;
   justify-content: space-evenly;
 }
 
-.cell{
-  display:flex;
+.cell {
+  display: flex;
 }
-.Game-grid button{
-  width: 30px;
-  height: 30px;
-  
+.Game-grid button {
+  width: 20px;
+  height: 20px;
+  border: none;
 }
-button.dead{
+button.dead {
   background-color: #fff;
   color: #000;
 }
-button.alive{
+button.alive {
   background-color: #000;
   color: #fff;
 }
-
-
