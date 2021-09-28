@@ -85,10 +85,28 @@ h1 {
 .cell {
   display: flex;
 }
+
+.Game-grid.disabled .border {
+  border: 5px dashed #e2232e;
+  padding: 5px;
+}
 .Game-grid button {
   width: 20px;
   height: 20px;
   border: none;
+  cursor: pointer;
+}
+.Game-grid button.alive:hover {
+  filter: invert(65%);
+}
+
+.Game-grid button.dead:hover {
+  filter: invert(65%);
+}
+
+.Game-grid button:disabled {
+  filter: grayscale(100%);
+  cursor: not-allowed;
 }
 button.dead {
   background-color: #fff;

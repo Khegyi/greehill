@@ -16,7 +16,7 @@ import "./App.css";
 function App() {
   const [theGrid, setTheGrid] = useState([]);
   const [theOriginalGrid, setTheOriginalGrid] = useState([]);
-  const [selectedPreset, setSelectedPreset] = useState([]);
+  const [selectedPreset, setSelectedPreset] = useState();
   const [globalAliveCounter, setGlobalAliveCounter] = useState(0);
   const [generationCounter, setGenerationCounter] = useState(0);
   const [playMode, setPlayMode] = useState(false);
@@ -79,10 +79,38 @@ function App() {
     return table;
   };
 
-  const shouldCellSurvive = (neighbours, isalive) => {
+  const isCellAlive = (cell, grid) => {
+    //check cell current lifesignal
+    const result = grid.find((c) => c.row === cell.row && c.coll === cell.coll);
+    return result.alive;
+  };
+
+  const getNeighboursPosition = (cell) => {
+    //Find cell's neighbours Position
+    let neighbours = [];
+    for (let h = cell.row - 1; h < cell.row + 2; h++) {
+      for (let k = cell.coll - 1; k < cell.coll + 2; k++) {
+        if (
+          h >= 0 &&
+          h <= defaultStartingRowNumber - 1 &&
+          k >= 0 &&
+          k <= defaultStartingCollNumber - 1
+        ) {
+          if (h !== cell.row || k !== cell.coll)
+            neighbours.push({ row: h, coll: k });
+        }
+      }
+    }
+    return neighbours;
+  };
+
+  const willCellSurvive = (cell, grid) => {
+    //Decide if the cell will live depending on it' live neighbours
+    const neighbours = getNeighboursPosition(cell);
+    const isalive = isCellAlive(cell, grid);
     let counter = 0;
-    neighbours.forEach((c) => {
-      if (isCellAlive(c)) {
+    neighbours.forEach((cell) => {
+      if (isCellAlive(cell, grid)) {
         counter++;
       }
     });
@@ -101,41 +129,10 @@ function App() {
     }
   };
 
-  const isCellAlive = (cell) => {
-    const tempGrid = [...theGrid];
-    const result = tempGrid.find(
-      (c) => c.row === cell.row && c.coll === cell.coll
-    );
-    return result.alive;
-  };
-
-  const willCellLiveNextGen = (cell) => {
-    // getting cell's direct neigbours and checking life signals
-    let neighbours = [];
-    for (let h = cell.row - 1; h < cell.row + 2; h++) {
-      for (let k = cell.coll - 1; k < cell.coll + 2; k++) {
-        if (
-          h >= 0 &&
-          h <= defaultStartingRowNumber - 1 &&
-          k >= 0 &&
-          k <= defaultStartingCollNumber - 1
-        ) {
-          if (h !== cell.row || k !== cell.coll)
-            neighbours.push({ row: h, coll: k });
-        }
-      }
-    }
-    const isNextPhaseAlive = shouldCellSurvive(neighbours, isCellAlive(cell));
-    // console.log("now alive: ",  isCellAlive(cell), " will Live:", isNextPhaseAlive);
-    // console.log(neighbours);
-    return isNextPhaseAlive;
-  };
-
-  const nextGeneration = () => {
+  const nextGeneration = (grid) => {
     let gAC = 0;
-    const tempGrid = [...theGrid];
-    tempGrid.map((cell) => {
-      cell.alive = willCellLiveNextGen(cell);
+    grid.map((cell) => {
+      cell.alive = willCellSurvive(cell, grid);
       if (cell.alive) {
         gAC++;
       }
@@ -143,20 +140,20 @@ function App() {
     });
     setGenerationCounter((genNumber) => genNumber + 1);
     setGlobalAliveCounter(gAC);
-    setTheGrid(tempGrid);
+    setTheGrid(grid);
   };
 
   const handleCellClick = (data) => {
-    const tempGrid = [...theGrid];
-    tempGrid.map((cell) => {
+    const grid = [...theGrid];
+    grid.map((cell) => {
       if (cell.row === data.row && cell.coll === data.coll) {
-        // SchrodringersQuestion(cell);
         cell.alive = !data.alive;
-        willCellLiveNextGen(cell);
+        willCellSurvive(cell, grid);
       }
       return cell;
     });
-    setTheGrid(tempGrid);
+    setTheGrid(grid);
+    setTheOriginalGrid(clone(grid));
   };
 
   const handlePlay = () => {
@@ -164,12 +161,14 @@ function App() {
       clearInterval(intervalId);
       setIntervalId(0);
       setPlayMode(false);
+      setCurrentAction("Start");
     } else {
       const newIntervalID = setInterval(() => {
-        nextGeneration();
+        nextGeneration(theGrid);
       }, playSpeed);
       setPlayMode(true);
       setIntervalId(newIntervalID);
+      setCurrentAction("Pause");
     }
   };
 
@@ -192,14 +191,14 @@ function App() {
   const resetOriginalGrid = () => {
     setTheGrid(JSON.parse(JSON.stringify(theOriginalGrid)));
     setGenerationCounter(0);
-    console.log(theOriginalGrid);
   };
 
   const getRandomGrid = () => {
     createTheGrid("random");
   };
   const getMap = () => {
-    console.log(JSON.stringify(theGrid));
+    navigator.clipboard.writeText(JSON.stringify(theGrid));
+    setCurrentAction("Grid was copied to Clipboard");
   };
 
   const handlePreset = (e) => {
@@ -212,7 +211,7 @@ function App() {
   };
 
   useEffect(() => {
-    createTheGrid("random");
+    createTheGrid();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -227,9 +226,8 @@ function App() {
         <div className="controll">
           <header className="App-header">
             <h1>Game of Life</h1>
-            <p>
-              {" "}
-              {generationCounter}th generation | Cells alive:{" "}
+            <p className="grid_info">
+              {generationCounter}th generation | Cells alive:
               {globalAliveCounter}
             </p>
             <div className="tooltip">
@@ -248,10 +246,11 @@ function App() {
               {playMode ? <PauseOutlined /> : <CaretRightOutlined />}
             </button>
             <button
+              className="next"
               disabled={playMode ? "disabled" : ""}
               onMouseEnter={() => setCurrentAction("Next Generation")}
               onMouseLeave={() => setCurrentAction("")}
-              onClick={() => nextGeneration(generationCounter)}
+              onClick={() => nextGeneration(theGrid)}
             >
               <StepForwardOutlined />
             </button>
@@ -284,6 +283,8 @@ function App() {
             </button>
             <button
               disabled={playMode ? "disabled" : ""}
+              onMouseEnter={() => setCurrentAction("Copy Grid to Clipboard")}
+              onMouseLeave={() => setCurrentAction("")}
               onClick={() => getMap()}
             >
               <CopyOutlined />
@@ -293,16 +294,22 @@ function App() {
             disabled={playMode ? "disabled" : ""}
             onChange={(e) => handlePreset(e)}
           >
-            <option value="" selected disabled hidden>
+            <option value="" defaultValue hidden>
               Choose Preset
             </option>
             {Object.keys(presets).map((preset, i) => {
-              return <option key={i}>{preset}</option>;
+              return (
+                <option value={preset} key={i}>
+                  {preset}
+                </option>
+              );
             })}
           </select>
           <button
             className="preset"
-            disabled={playMode ? "disabled" : ""}
+            disabled={
+              playMode || selectedPreset === undefined ? "disabled" : ""
+            }
             onMouseEnter={() => setCurrentAction("Load Preset Grid")}
             onMouseLeave={() => setCurrentAction("")}
             onClick={() => setPreset()}
@@ -324,7 +331,13 @@ function App() {
             <ForwardOutlined />
           </div>
         </div>
-        <div className="Game-grid">{renderTheGrid()}</div>
+        <div
+          className={`Game-grid ${
+            playMode || generationCounter !== 0 ? "disabled" : ""
+          }`}
+        >
+          <div className="border">{renderTheGrid()}</div>
+        </div>
       </div>
     </div>
   );
