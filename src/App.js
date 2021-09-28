@@ -61,6 +61,7 @@ function App() {
               key={`${ren.row}${ren.coll}`}
             >
               <button
+                title="cell"
                 disabled={playMode || generationCounter !== 0 ? "disabled" : ""}
                 onClick={() => handleCellClick(ren)}
                 className={ren.alive ? "alive" : "dead"}
@@ -227,16 +228,21 @@ function App() {
           <header className="App-header">
             <h1>Game of Life</h1>
             <p className="grid_info">
-              {generationCounter}th generation | Cells alive:
-              {globalAliveCounter}
+              <span title="gen_counter">{generationCounter}th generation</span>
+              <span> | </span>
+              <span title="alive_counter">
+                Cells alive:
+                {globalAliveCounter}
+              </span>
             </p>
             <div className="tooltip">
-              <p>{currentAction}</p>
+              <p title="tooltip">{currentAction}</p>
             </div>
           </header>
           <div className="first_row">
             <button
               className={playMode ? "stop" : "go"}
+              title="start"
               onMouseEnter={() =>
                 setCurrentAction(playMode ? "Pause" : "Start")
               }
@@ -247,6 +253,7 @@ function App() {
             </button>
             <button
               className="next"
+              title="next"
               disabled={playMode ? "disabled" : ""}
               onMouseEnter={() => setCurrentAction("Next Generation")}
               onMouseLeave={() => setCurrentAction("")}
@@ -256,6 +263,7 @@ function App() {
             </button>
             <button
               className="reset"
+              title="reset"
               disabled={playMode ? "disabled" : ""}
               onMouseEnter={() => setCurrentAction("Reset to  0th Generation")}
               onMouseLeave={() => setCurrentAction("")}
@@ -265,6 +273,7 @@ function App() {
             </button>
             <button
               className="clear"
+              title="clear"
               disabled={playMode ? "disabled" : ""}
               onMouseEnter={() => setCurrentAction("Clear Grid")}
               onMouseLeave={() => setCurrentAction("")}
@@ -274,6 +283,7 @@ function App() {
             </button>
             <button
               className="random"
+              title="random"
               disabled={playMode ? "disabled" : ""}
               onMouseEnter={() => setCurrentAction("Random Grid")}
               onMouseLeave={() => setCurrentAction("")}
