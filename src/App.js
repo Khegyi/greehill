@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import presets from "./presets";
 import {
   PauseOutlined,
@@ -13,6 +13,8 @@ import {
 } from "@ant-design/icons";
 import "./App.css";
 
+import { willCellSurvive, getNeighboursPosition } from "./App.method";
+
 function App() {
   const [theGrid, setTheGrid] = useState([]);
   const [theOriginalGrid, setTheOriginalGrid] = useState([]);
@@ -26,12 +28,16 @@ function App() {
   const defaultStartingRowNumber = 30;
   const defaultStartingCollNumber = 30;
 
+  const PlayBtn = useRef(null);
+
   const clone = require("rfdc")();
 
   const createTheGrid = (mode) => {
     let gAC = 0;
     let value = false;
     let grid = [];
+    let neighbours = [];
+    let index = 0;
 
     for (let i = 0; i < defaultStartingRowNumber; i++) {
       for (let z = 0; z < defaultStartingCollNumber; z++) {
@@ -39,7 +45,18 @@ function App() {
           const rndnum = Math.floor(Math.random() * 2);
           value = rndnum === 1 ? true : false;
         }
-        grid.push({ row: i, coll: z, alive: value });
+        neighbours = getNeighboursPosition(
+          { row: i, coll: z },
+          defaultStartingRowNumber,
+          defaultStartingCollNumber
+        );
+        grid.push({
+          index,
+          row: i,
+          coll: z,
+          alive: value,
+          neighbours: [...neighbours],
+        });
         if (value) gAC++;
       }
     }
@@ -80,60 +97,16 @@ function App() {
     return table;
   };
 
-  const isCellAlive = (cell, grid) => {
-    //check cell current lifesignal
-    const result = grid.find((c) => c.row === cell.row && c.coll === cell.coll);
-    return result.alive;
-  };
-
-  const getNeighboursPosition = (cell) => {
-    //Find cell's neighbours Position
-    let neighbours = [];
-    for (let h = cell.row - 1; h < cell.row + 2; h++) {
-      for (let k = cell.coll - 1; k < cell.coll + 2; k++) {
-        if (
-          h >= 0 &&
-          h <= defaultStartingRowNumber - 1 &&
-          k >= 0 &&
-          k <= defaultStartingCollNumber - 1
-        ) {
-          if (h !== cell.row || k !== cell.coll)
-            neighbours.push({ row: h, coll: k });
-        }
-      }
-    }
-    return neighbours;
-  };
-
-  const willCellSurvive = (cell, grid) => {
-    //Decide if the cell will live depending on it' live neighbours
-    const neighbours = getNeighboursPosition(cell);
-    const isalive = isCellAlive(cell, grid);
-    let counter = 0;
-    neighbours.forEach((cell) => {
-      if (isCellAlive(cell, grid)) {
-        counter++;
-      }
-    });
-    if (isalive) {
-      if (counter < 2 || counter > 3) {
-        return false;
-      } else {
-        return true;
-      }
-    } else {
-      if (counter === 3) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-  };
-
   const nextGeneration = (grid) => {
     let gAC = 0;
-    grid.map((cell) => {
-      cell.alive = willCellSurvive(cell, grid);
+    const tempGrid = clone(grid);
+    tempGrid.map((cell) => {
+      cell.alive = willCellSurvive(
+        cell,
+        grid,
+        defaultStartingRowNumber,
+        defaultStartingCollNumber
+      );
       if (cell.alive) {
         gAC++;
       }
@@ -141,7 +114,7 @@ function App() {
     });
     setGenerationCounter((genNumber) => genNumber + 1);
     setGlobalAliveCounter(gAC);
-    setTheGrid(grid);
+    setTheGrid(tempGrid);
   };
 
   const handleCellClick = (data) => {
@@ -149,7 +122,7 @@ function App() {
     grid.map((cell) => {
       if (cell.row === data.row && cell.coll === data.coll) {
         cell.alive = !data.alive;
-        willCellSurvive(cell, grid);
+        willCellSurvive(cell, grid, defaultStartingRowNumber);
       }
       return cell;
     });
@@ -165,7 +138,7 @@ function App() {
       setCurrentAction("Start");
     } else {
       const newIntervalID = setInterval(() => {
-        nextGeneration(theGrid);
+        PlayBtn.current.click();
       }, playSpeed);
       setPlayMode(true);
       setIntervalId(newIntervalID);
@@ -216,11 +189,6 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    renderTheGrid();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theGrid]);
-
   return (
     <div className="App">
       <div className="App-body">
@@ -254,7 +222,7 @@ function App() {
             <button
               className="next"
               title="next"
-              disabled={playMode ? "disabled" : ""}
+              ref={PlayBtn}
               onMouseEnter={() => setCurrentAction("Next Generation")}
               onMouseLeave={() => setCurrentAction("")}
               onClick={() => nextGeneration(theGrid)}
@@ -352,5 +320,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
