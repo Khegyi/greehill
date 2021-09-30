@@ -12,7 +12,7 @@ import {
   ImportOutlined,
 } from "@ant-design/icons";
 import "./App.css";
-
+import Canvas from "./Canvas";
 import { willCellSurvive, getNeighboursPosition } from "./App.method";
 
 function App() {
@@ -65,38 +65,6 @@ function App() {
     setTheOriginalGrid(clone(grid));
   };
 
-  const renderTheGrid = () => {
-    let table = [];
-    for (let t = 0; t < defaultStartingRowNumber; t++) {
-      const eachRow = theGrid
-        .filter((r) => r.row === t)
-        .map((ren) => {
-          return (
-            <div
-              className="cell"
-              data-cellnum={ren.coll}
-              key={`${ren.row}${ren.coll}`}
-            >
-              <button
-                title="cell"
-                disabled={playMode || generationCounter !== 0 ? "disabled" : ""}
-                onClick={() => handleCellClick(ren)}
-                className={ren.alive ? "alive" : "dead"}
-              ></button>
-            </div>
-          );
-        });
-      const rowRes = (
-        <div key={t} data-rownum={t} className="row">
-          {eachRow}
-        </div>
-      );
-      table.push(rowRes);
-    }
-
-    return table;
-  };
-
   const nextGeneration = (grid) => {
     let gAC = 0;
     const tempGrid = clone(grid);
@@ -117,17 +85,22 @@ function App() {
     setTheGrid(tempGrid);
   };
 
-  const handleCellClick = (data) => {
-    const grid = [...theGrid];
-    grid.map((cell) => {
-      if (cell.row === data.row && cell.coll === data.coll) {
-        cell.alive = !data.alive;
-        willCellSurvive(cell, grid, defaultStartingRowNumber);
+  const handleCellClick = (e) => {
+    if (!playMode && generationCounter === 0) {
+      const cellindex = e.target.id;
+      let gAC = globalAliveCounter;
+      const tempGrid = clone(theGrid);
+      tempGrid[cellindex].alive = !tempGrid[cellindex].alive;
+
+      if (tempGrid[cellindex].alive) {
+        gAC++;
+      } else {
+        gAC--;
       }
-      return cell;
-    });
-    setTheGrid(grid);
-    setTheOriginalGrid(clone(grid));
+      setGlobalAliveCounter(gAC);
+      setTheGrid(tempGrid);
+      setTheOriginalGrid(clone(tempGrid));
+    }
   };
 
   const handlePlay = () => {
@@ -163,7 +136,9 @@ function App() {
   };
 
   const resetOriginalGrid = () => {
-    setTheGrid(JSON.parse(JSON.stringify(theOriginalGrid)));
+    const gAC = theOriginalGrid.filter((cell) => cell.alive === true).length;
+    setTheGrid(clone(theOriginalGrid));
+    setGlobalAliveCounter(gAC);
     setGenerationCounter(0);
   };
 
@@ -179,6 +154,8 @@ function App() {
     setSelectedPreset(clone(presets[e.target.value]));
   };
   const setPreset = () => {
+    const gAC = selectedPreset.filter((cell) => cell.alive === true).length;
+    setGlobalAliveCounter(gAC);
     setGenerationCounter(0);
     setTheGrid(clone(selectedPreset));
     setTheOriginalGrid(clone(selectedPreset));
@@ -314,7 +291,15 @@ function App() {
             playMode || generationCounter !== 0 ? "disabled" : ""
           }`}
         >
-          <div className="border">{renderTheGrid()}</div>
+          <div className="border">
+            <Canvas
+              gridRow={defaultStartingRowNumber}
+              gridColl={defaultStartingCollNumber}
+              disabled={playMode || generationCounter !== 0}
+              draw={theGrid}
+              clickFN={(e) => handleCellClick(e)}
+            ></Canvas>
+          </div>
         </div>
       </div>
     </div>
