@@ -14,6 +14,7 @@ import {
 import "./App.css";
 import Canvas from "./Canvas";
 import { willCellSurvive, getNeighboursPosition } from "./App.method";
+import cloneDeep from "lodash/cloneDeep";
 
 function App() {
   const [theGrid, setTheGrid] = useState([]);
@@ -29,8 +30,6 @@ function App() {
   const defaultStartingCollNumber = 30;
 
   const PlayBtn = useRef(null);
-
-  const clone = require("rfdc")();
 
   const createTheGrid = (mode) => {
     let gAC = 0;
@@ -62,13 +61,13 @@ function App() {
     }
     setGlobalAliveCounter(gAC);
     setTheGrid(grid);
-    setTheOriginalGrid(clone(grid));
+    setTheOriginalGrid(cloneDeep(grid));
   };
 
   const nextGeneration = (grid) => {
     let gAC = 0;
-    const tempGrid = clone(grid);
-    tempGrid.map((cell) => {
+    const tempGrid = cloneDeep(grid);
+    tempGrid.forEach((cell) => {
       cell.alive = willCellSurvive(
         cell,
         grid,
@@ -78,7 +77,6 @@ function App() {
       if (cell.alive) {
         gAC++;
       }
-      return cell;
     });
     setGenerationCounter((genNumber) => genNumber + 1);
     setGlobalAliveCounter(gAC);
@@ -89,7 +87,7 @@ function App() {
     if (!playMode && generationCounter === 0) {
       const cellindex = e.target.id;
       let gAC = globalAliveCounter;
-      const tempGrid = clone(theGrid);
+      const tempGrid = cloneDeep(theGrid);
       tempGrid[cellindex].alive = !tempGrid[cellindex].alive;
 
       if (tempGrid[cellindex].alive) {
@@ -99,14 +97,13 @@ function App() {
       }
       setGlobalAliveCounter(gAC);
       setTheGrid(tempGrid);
-      setTheOriginalGrid(clone(tempGrid));
+      setTheOriginalGrid(cloneDeep(tempGrid));
     }
   };
 
   const handlePlay = () => {
     if (playMode) {
       clearInterval(intervalId);
-      setIntervalId(0);
       setPlayMode(false);
       setCurrentAction("Start");
     } else {
@@ -137,7 +134,7 @@ function App() {
 
   const resetOriginalGrid = () => {
     const gAC = theOriginalGrid.filter((cell) => cell.alive === true).length;
-    setTheGrid(clone(theOriginalGrid));
+    setTheGrid(cloneDeep(theOriginalGrid));
     setGlobalAliveCounter(gAC);
     setGenerationCounter(0);
   };
@@ -151,14 +148,14 @@ function App() {
   };
 
   const handlePreset = (e) => {
-    setSelectedPreset(clone(presets[e.target.value]));
+    setSelectedPreset(cloneDeep(presets[e.target.value]));
   };
   const setPreset = () => {
     const gAC = selectedPreset.filter((cell) => cell.alive === true).length;
     setGlobalAliveCounter(gAC);
     setGenerationCounter(0);
-    setTheGrid(clone(selectedPreset));
-    setTheOriginalGrid(clone(selectedPreset));
+    setTheGrid(cloneDeep(selectedPreset));
+    setTheOriginalGrid(cloneDeep(selectedPreset));
   };
 
   useEffect(() => {
@@ -262,9 +259,7 @@ function App() {
           </select>
           <button
             className="preset"
-            disabled={
-              playMode || selectedPreset === undefined ? "disabled" : ""
-            }
+            disabled={playMode || !selectedPreset ? "disabled" : ""}
             onMouseEnter={() => setCurrentAction("Load Preset Grid")}
             onMouseLeave={() => setCurrentAction("")}
             onClick={() => setPreset()}
