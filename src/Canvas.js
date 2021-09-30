@@ -1,59 +1,40 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 
 const Canvas = (props) => {
   const canvasRef = useRef(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const draw = (ctx, size) => {
-    /*    size = size || 10;
-    begin = 0;
-    end = 0; */
+  const size = 20;
+  const drawgrid = [];
 
-    props.draw.forEach((cell, id) => {
-      ctx.beginPath();
-      ctx.moveTo(cell.coll * size, cell.row * size); // 0 0
-      ctx.lineTo(cell.coll * size + size, cell.row * size); // 20 0
-      ctx.lineTo(cell.coll * size + size, cell.row * size + size); // 20 20
-      ctx.lineTo(cell.coll * size, cell.row * size + size); //0 20
-      ctx.lineTo(cell.coll * size, cell.row * size); // 0 0
-      ctx.stroke();
-      if (cell.alive) {
-        ctx.fillStyle = "#000";
-      } else {
-        ctx.fillStyle = "#fff";
-      }
-      ctx.fill();
-      ctx.addHitRegion({ id: id });
-      ctx.closePath();
-    });
-
-    /*     for (let i = 0; i < props.gridRow; i++) {
-      for (let z = 0; z < props.gridRow; z++) {
-        ctx.beginPath();
-        ctx.moveTo(i * size, z * size); // 0 0
-        ctx.lineTo(i * size + size, z * size); // 20 0
-        ctx.lineTo(i * size + size, z * size + size); // 20 20
-        ctx.lineTo(i * size, z * size + size); //0 20
-        ctx.lineTo(i * size, z * size); // 0 0
-        ctx.stroke();
-        ctx.fill();
-      }
-    } */
-  };
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
-
-    //Our draw come here
-    draw(context, 20);
-  }, [draw]);
+  props.draw.forEach((cell, id) => {
+    drawgrid.push(
+      <rect
+        disabled={props.disabled}
+        onClick={props.clickFN}
+        key={`${cell.row}${cell.coll}${id}`}
+        id={id}
+        data-lifesignal={cell.alive}
+        className={props.disabled ? "disabled" : cell.alive ? "alive" : "dead"}
+        x={cell.coll * size}
+        y={cell.row * size}
+        width={size}
+        height={size}
+        style={{
+          fill: cell.alive ? "black" : "white",
+          stroke: "black",
+          strokeWidth: "0.2",
+        }}
+      />
+    );
+  });
 
   return (
-    <canvas
-      width={props.gridRow * 20}
-      height={props.gridColl * 20}
-      ref={canvasRef} /* {...props} */
-    />
+    <svg
+      width={props.gridRow * size}
+      height={props.gridColl * size}
+      ref={canvasRef}
+    >
+      {drawgrid}
+    </svg>
   );
 };
 

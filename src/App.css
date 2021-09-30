@@ -85,34 +85,24 @@ h1 {
 .cell {
   display: flex;
 }
+.Game-grid rect {
+  cursor: pointer;
+}
+
+.Game-grid rect.alive:hover {
+  filter: invert(65%);
+}
+
+.Game-grid rect.dead:hover {
+  filter: invert(65%);
+}
+
+.Game-grid rect.disabled {
+  filter: grayscale(100%);
+  cursor: not-allowed;
+}
 
 .Game-grid.disabled .border {
   border: 5px dashed #e2232e;
   padding: 5px;
-}
-.Game-grid button {
-  width: 20px;
-  height: 20px;
-  border: none;
-  cursor: pointer;
-}
-.Game-grid button.alive:hover {
-  filter: invert(65%);
-}
-
-.Game-grid button.dead:hover {
-  filter: invert(65%);
-}
-
-.Game-grid button:disabled {
-  filter: grayscale(100%);
-  cursor: not-allowed;
-}
-button.dead {
-  background-color: #fff;
-  color: #000;
-}
-button.alive {
-  background-color: #000;
-  color: #fff;
 }
