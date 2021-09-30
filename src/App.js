@@ -12,7 +12,7 @@ import {
   ImportOutlined,
 } from "@ant-design/icons";
 import "./App.css";
-
+import Canvas from "./Canvas";
 import { willCellSurvive, getNeighboursPosition } from "./App.method";
 
 function App() {
@@ -314,7 +314,14 @@ function App() {
             playMode || generationCounter !== 0 ? "disabled" : ""
           }`}
         >
-          <div className="border">{renderTheGrid()}</div>
+          {/*   <div className="border">{renderTheGrid()}</div> */}
+          <div className="canvas">
+            <Canvas
+              gridRow={defaultStartingRowNumber}
+              gridColl={defaultStartingCollNumber}
+              draw={theGrid}
+            ></Canvas>
+          </div>
         </div>
       </div>
     </div>
